@@ -39,11 +39,14 @@ class AddressBook:
                 file.close()
 
             print("Contact has been added")
-            print(CBLUE, "-Last Name:\t ",contact.lastname)
-            print(CBLUE, "-First Name:\t ",contact.firstname)
-            print(CBLUE, "-Address:\t ",contact.address)
-            print(CBLUE, "-Phone number:\t ",contact.phone)
-            print(CBLUE, "-Email:\t ",contact.email)
+            print(CBLUE)
+            print("**********************")
+            print("-Last Name:\t ",contact.lastname)
+            print("-First Name:\t ",contact.firstname)
+            print("-Address:\t ",contact.address)
+            print("-Phone number(s):\t ",contact.phone)
+            print("-Email(s):\t ",contact.email)
+            print(CEND)
 
 def get_str_from_args_field(args_field):
     _str = ""
@@ -56,12 +59,12 @@ def main():
     addressbook = AddressBook()
 
     parser = argparse.ArgumentParser(description="A Simple Python CLI program to manage Adress book")
-    parser.add_argument("command", help="Command to execute", type=str.lower, choices = ["add"])
+    parser.add_argument("command", help="Command to execute", type=str.lower, choices = ["add", "list"])
     parser.add_argument("-ln", "--lastname", type= str, help="Last name")
     parser.add_argument("-fn", "--firstname", type= str, help="First name")
     parser.add_argument("-a", "--address", type= str, help="Address")
-    parser.add_argument("-p", "--phone", type= str, help="Phone number")
-    parser.add_argument("-e", "--email", type= str, help="Email address")
+    parser.add_argument("-p", "--phone", type= str, help="Phone number(s)")
+    parser.add_argument("-e", "--email", type= str, help="Email address(s)")
     args = parser.parse_args()
 
     #Add a contact to the address
@@ -78,27 +81,37 @@ def main():
         _phone = get_str_from_args_field(args.phone)
 
         #check if phone number is valid
+        _phone_list = []
         if len(_phone) > 0:
-            if not re.search("^\\s*[+]?[0-9]+\\s*$", _phone):
-                print(CRED, "{appname}:'{command}': Bad phone number format. See '{appname} help'"
-                    .format(appname=sys.argv[0].split("/")[-1], command=args.command), CEND)
-                return
-            _phone = _phone.replace(" ","") #remove trailing spaces (if any)
+            _phone_list = _phone.split(';')
+            for i in range(len(_phone_list)):
+                if not re.search("^\\s*[+]?[0-9\\s]+\\s*$", _phone_list[i]):
+                    print(CRED, "{appname}:'{command}': Bad phone number format '{badnumber}'. See '{appname} help'"
+                        .format(appname=sys.argv[0].split("/")[-1], command=args.command, 
+                        badnumber=_phone_list[i]), CEND)
+                    return
+
+                _phone_list[i] = _phone_list[i].replace(" ","") #remove all spaces (if any)
         
         _email = get_str_from_args_field(args.email)
 
         #check if email address is valid
+        _email_list = []
         if len(_email) > 0:
-            if not re.search("^\\s*\w+@\w+.\w+\\s*$", _email):
-                print(CRED, "{appname}:'{command}': Bad phone email format. See '{appname} help'"
-                    .format(appname=sys.argv[0].split("/")[-1], command=args.command), CEND)
-                return
-            _email = _email.replace(" ","") #remove trailing spaces (if any)
+            _email_list = _email.split(';')
+            for i in range(len(_email_list)):
+                if not re.search("^\\s*\w+@\w+.\w+\\s*$", _email_list[i]):
+                    print(CRED, "{appname}:'{command}': Bad phone email format '{bademail}'. See '{appname} help'"
+                        .format(appname=sys.argv[0].split("/")[-1], command=args.command, 
+                        bademail=_email_list[i]), CEND)
+                    return
+
+                _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
     
         _contact = Contact(lastname=_lastname, firstname= _firstname)
         _contact.address = get_str_from_args_field(args.address)
-        _contact.phone = _phone
-        _contact.email = _email
+        _contact.phone = _phone_list
+        _contact.email = _email_list
         addressbook.addContact(_contact)
         
 
