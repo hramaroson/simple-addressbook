@@ -73,6 +73,25 @@ def get_str_from_args_field(args_field):
             _str = args_field
     return _str
 
+def check_and_get_phonelist(command, phoneargs, phonelist):
+    _phone = get_str_from_args_field(phoneargs)
+
+    #check if phone number is valid
+    _phone_list = []
+    if len(_phone) > 0:
+        _phone_list = _phone.split(';')
+        for i in range(len(_phone_list)):
+            if not re.search("^\\s*[+]?[0-9\\s]+\\s*$", _phone_list[i]):
+                print("{appname}:'{command}': Bad phone number format '{badnumber}'. See '{appname} help'"
+                    .format(appname=sys.argv[0].split("/")[-1], command=command, 
+                    badnumber=_phone_list[i]))
+                return False
+
+            _phone_list[i] = _phone_list[i].replace(" ","") #remove all spaces (if any)
+
+    phonelist = _phone_list
+    return True
+
 def main():
     addressbook = AddressBook()
 
@@ -100,17 +119,9 @@ def main():
 
         #check if phone number is valid
         _phone_list = []
-        if len(_phone) > 0:
-            _phone_list = _phone.split(';')
-            for i in range(len(_phone_list)):
-                if not re.search("^\\s*[+]?[0-9\\s]+\\s*$", _phone_list[i]):
-                    print("{appname}:'{command}': Bad phone number format '{badnumber}'. See '{appname} help'"
-                        .format(appname=sys.argv[0].split("/")[-1], command=args.command, 
-                        badnumber=_phone_list[i]))
-                    return
-
-                _phone_list[i] = _phone_list[i].replace(" ","") #remove all spaces (if any)
-        
+        if not check_and_get_phonelist(args.command, args.phone, _phone_list):
+            return
+            
         _email = get_str_from_args_field(args.email)
 
         #check if email address is valid
