@@ -50,11 +50,21 @@ class AddressBook:
     
    
     def _filter(self, item):
+        if len(self._lastname) > 0 and (item is not None) \
+            and item.lastname.lower() != self._lastname.lower():
+            return False
+
+        if len(self._firstname) > 0 and (item is not None) \
+            and item.firstname.lower() != self._firstname.lower():
+            return False
+
         return True
 
-    def list(self, lastname=""):
+    def list(self, lastname="", firstname=""):
         self._lastname = lastname
+        self._firstname = firstname
         _addressbook_filtered = filter(self._filter, self._addressbook)
+        
         print("First Name\t|Last Name\t|Address\t|Phone Numbers(s)\t|Emails(s)")
         for _contact in _addressbook_filtered:
             print(_contact.firstname if len(_contact.firstname) > 0 else "-",end="\t\t")
@@ -85,11 +95,8 @@ def check_and_get_phonelist(command, phoneargs, phonelist):
                     .format(appname=sys.argv[0].split("/")[-1], command=command, 
                     badnumber=_phone_list[i]))
                 return False
-
             _phone_list[i] = _phone_list[i].replace(" ","") #remove all spaces (if any)
-
     phonelist[:] = _phone_list
-    print("Created list ", phonelist)
     return True
 
 def main():
@@ -145,7 +152,7 @@ def main():
     elif args.command == "list":
         _lastname = get_str_from_args_field(args.lastname)
         _firstname = get_str_from_args_field(args.firstname)
-        addressbook.list(lastname=_lastname)      
+        addressbook.list(lastname=_lastname, firstname=_firstname)      
 
 
 if __name__ == "__main__":
