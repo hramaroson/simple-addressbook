@@ -50,7 +50,6 @@ class AddressBook:
     
    
     def _filter(self, item):
-
         return True
 
     def list(self, lastname=""):
@@ -89,7 +88,8 @@ def check_and_get_phonelist(command, phoneargs, phonelist):
 
             _phone_list[i] = _phone_list[i].replace(" ","") #remove all spaces (if any)
 
-    phonelist = _phone_list
+    phonelist[:] = _phone_list
+    print("Created list ", phonelist)
     return True
 
 def main():
@@ -107,15 +107,13 @@ def main():
     # Add a contact to the address
     if args.command == "add": 
         #Check if contact lastname is given
-        lastname = get_str_from_args_field(args.lastname)
-        firstname = get_str_from_args_field(args.firstname)
+        _lastname = get_str_from_args_field(args.lastname)
+        _firstname = get_str_from_args_field(args.firstname)
         
-        if len(lastname)<1 and len(firstname) <1:
+        if len(_lastname)<1 and len(_firstname) <1:
             print("{appname}:'{command}': At least one of Contact last name or first name should be given. See '{appname} help'"
                 .format(appname=sys.argv[0].split("/")[-1], command=args.command))
             return
-        
-        _phone = get_str_from_args_field(args.phone)
 
         #check if phone number is valid
         _phone_list = []
@@ -137,7 +135,7 @@ def main():
 
                 _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
     
-        _contact = Contact(lastname=lastname, firstname= firstname)
+        _contact = Contact(lastname=_lastname, firstname= _firstname)
         _contact.address = get_str_from_args_field(args.address)
         _contact.phone = _phone_list
         _contact.email = _email_list
@@ -145,7 +143,9 @@ def main():
     
     # List contacts
     elif args.command == "list":
-        addressbook.list()      
+        _lastname = get_str_from_args_field(args.lastname)
+        _firstname = get_str_from_args_field(args.firstname)
+        addressbook.list(lastname=_lastname)      
 
 
 if __name__ == "__main__":
