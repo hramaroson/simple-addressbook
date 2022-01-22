@@ -1,17 +1,16 @@
 #!/usr/bin/python3 
-import pickletools
 import sys
 import argparse
 import pickle
 import re
 
 class Contact:
-    def __init__(self,lastname="John", firstname="Doe", address="", phone="", email=""):
+    def __init__(self,lastname="John", firstname="Doe", address="", phones=[], emails=[]):
         self.lastname = lastname
         self.firstname = firstname
         self.address = address
-        self.phone = phone
-        self.email = email
+        self.phones = phones  
+        self.emails = emails
 
 class AddressBook:
     def __init__(self):
@@ -45,8 +44,8 @@ class AddressBook:
             print("-Last Name:\t ",contact.lastname)
             print("-First Name:\t ",contact.firstname)
             print("-Address:\t ",contact.address)
-            print("-Phone number(s):\t ",contact.phone)
-            print("-Email(s):\t ",contact.email)
+            print("-Phone number(s):\t ",contact.phones)
+            print("-Email(s):\t ",contact.emails)
     
    
     def _filter(self, item):
@@ -58,11 +57,16 @@ class AddressBook:
             and item.firstname.lower() != self._firstname.lower():
             return False
 
+        if len(self._phones) > 0 and (item is not None) \
+            and not any(i in self._phones for i in item.phones):
+            return False
+
         return True
 
-    def list(self, lastname="", firstname=""):
+    def list(self, lastname="", firstname="", phones=[]): 
         self._lastname = lastname
         self._firstname = firstname
+        self._phones = phones
         _addressbook_filtered = filter(self._filter, self._addressbook)
         
         print("First Name\t|Last Name\t|Address\t|Phone Numbers(s)\t|Emails(s)")
@@ -70,8 +74,8 @@ class AddressBook:
             print(_contact.firstname if len(_contact.firstname) > 0 else "-",end="\t\t")
             print(_contact.lastname if len(_contact.lastname) > 0 else "-", end="\t\t")
             print(_contact.address if len(_contact.address) > 0 else "-", end="\t\t")
-            print(";".join(_contact.phone) if len(_contact.phone) > 0 else "-", end="\t\t")
-            print(";".join(_contact.email) if len(_contact.email) > 0 else "-", end="\t\t")
+            print(";".join(_contact.phones) if len(_contact.phones) > 0 else "-", end="\t\t")
+            print(";".join(_contact.emails) if len(_contact.emails) > 0 else "-", end="\t\t")
             print("\n",end="")
 
 
@@ -144,15 +148,20 @@ def main():
     
         _contact = Contact(lastname=_lastname, firstname= _firstname)
         _contact.address = get_str_from_args_field(args.address)
-        _contact.phone = _phone_list
-        _contact.email = _email_list
-        addressbook.addContact(_contact)
+        _contact.phones = _phone_list
+        _contact.emails = _email_list
+        addressbook.addContact(_contact)  
     
     # List contacts
     elif args.command == "list":
         _lastname = get_str_from_args_field(args.lastname)
         _firstname = get_str_from_args_field(args.firstname)
-        addressbook.list(lastname=_lastname, firstname=_firstname)      
+
+        _phone_list = []
+        if not check_and_get_phonelist(args.command, args.phone, _phone_list): 
+            return
+
+        addressbook.list(lastname=_lastname, firstname=_firstname, phones=_phone_list)      
 
 
 if __name__ == "__main__":
