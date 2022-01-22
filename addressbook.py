@@ -61,12 +61,17 @@ class AddressBook:
             and not any(i in self._phones for i in item.phones):
             return False
 
+        if len(self._emails) > 0 and (item is not None) \
+            and not any(i in self._emails for i in item.emails):
+            return False
+
         return True
 
-    def list(self, lastname="", firstname="", phones=[]): 
+    def list(self, lastname="", firstname="", phones=[], emails=[]): 
         self._lastname = lastname
         self._firstname = firstname
         self._phones = phones
+        self._emails = emails
         _addressbook_filtered = filter(self._filter, self._addressbook)
         
         print("First Name\t|Last Name\t|Address\t|Phone Numbers(s)\t|Emails(s)")
@@ -103,6 +108,23 @@ def check_and_get_phonelist(command, phoneargs, phonelist):
     phonelist[:] = _phone_list
     return True
 
+def check_and_get_emaillist(command, emailargs, emaillist):
+    _email = get_str_from_args_field(emailargs)
+
+    #Check if email is valid
+    _email_list = []
+    if len(_email) > 0:
+        _email_list = _email.split(';')
+        for i in range(len(_email_list)):
+            if not re.search("^\\s*\w+@\w+.\w+\\s*$", _email_list[i]):
+                print("{appname}:'{command}': Bad phone email format '{bademail}'. See '{appname} help'"
+                    .format(appname=sys.argv[0].split("/")[-1], command=command, 
+                        bademail=_email_list[i]))
+                return False
+            _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
+    emaillist[:] = _email_list
+    return True 
+
 def main():
     addressbook = AddressBook()
 
@@ -130,26 +152,16 @@ def main():
         _phone_list = []
         if not check_and_get_phonelist(args.command, args.phone, _phone_list):
             return
-            
-        _email = get_str_from_args_field(args.email)
 
         #check if email address is valid
         _email_list = []
-        if len(_email) > 0:
-            _email_list = _email.split(';')
-            for i in range(len(_email_list)):
-                if not re.search("^\\s*\w+@\w+.\w+\\s*$", _email_list[i]):
-                    print("{appname}:'{command}': Bad phone email format '{bademail}'. See '{appname} help'"
-                        .format(appname=sys.argv[0].split("/")[-1], command=args.command, 
-                        bademail=_email_list[i]))
-                    return
+        if not check_and_get_emaillist(args.command, args.email, _email_list):
+            return 
 
-                _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
-    
         _contact = Contact(lastname=_lastname, firstname= _firstname)
         _contact.address = get_str_from_args_field(args.address)
         _contact.phones = _phone_list
-        _contact.emails = _email_list
+        _contact.emails = _email_list 
         addressbook.addContact(_contact)  
     
     # List contacts
@@ -160,9 +172,13 @@ def main():
         _phone_list = []
         if not check_and_get_phonelist(args.command, args.phone, _phone_list): 
             return
+        
+        _email_list = []
+        if not check_and_get_emaillist(args.command, args.email, _email_list):
+            return 
 
-        addressbook.list(lastname=_lastname, firstname=_firstname, phones=_phone_list)      
-
+        addressbook.list(lastname=_lastname, firstname=_firstname, 
+            phones=_phone_list, emails=_email_list)      
 
 if __name__ == "__main__":
     main()
