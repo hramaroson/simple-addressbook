@@ -50,16 +50,19 @@ class AddressBook:
     
    
     def _filter(self, item):
-        if len(self._lastname) > 0 and (item is not None) \
-            and item.lastname.lower() != self._lastname.lower():
-            return False
+        if len(self._lastname) > 0 and (item is not None):
+            if len(item.lastname) <=0 or (len(item.lastname) >0 \
+                and item.lastname.lower() != self._lastname.lower()):
+                return False
 
-        if len(self._firstname) > 0 and (item is not None) \
-            and item.firstname.lower() != self._firstname.lower():
-            return False
+        if len(self._firstname) > 0 and (item is not None):
+            if len(item.firstname) <=0 or (len(item.firstname) >0 \
+                and item.firstname.lower() != self._firstname.lower()):
+                return False
         
         if len(self._address) >0 and (item is not None):
-            if len(item.address) <=0 or (len(item.address) >0 and difflib.SequenceMatcher(a=self._address, b=item.address).ratio() < 0.1):
+            if len(item.address) <=0 or (len(item.address) >0 \
+                and difflib.SequenceMatcher(a=self._address, b=item.address).ratio() < 0.1):
                 return False
 
         if len(self._phones) > 0 and (item is not None) \
