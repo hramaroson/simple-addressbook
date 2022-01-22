@@ -1,4 +1,5 @@
 #!/usr/bin/python3 
+import difflib
 import sys
 import argparse
 import pickle
@@ -41,11 +42,11 @@ class AddressBook:
                 file.close()
 
             print("Contact has been added")
-            print("-Last Name:\t ",contact.lastname)
-            print("-First Name:\t ",contact.firstname)
-            print("-Address:\t ",contact.address)
-            print("-Phone number(s):\t ",contact.phones)
-            print("-Email(s):\t ",contact.emails)
+            print("-Last Name:\t ",contact.lastname if len(contact.lastname) >0 else "-")
+            print("-First Name:\t ",contact.firstname if len(contact.firstname) >0 else "-")
+            print("-Address:\t ",contact.address if len(contact.address) >0 else "-")
+            print("-Phone number(s):\t ",contact.phones if len(contact.phones) >0 else "-")
+            print("-Email(s):\t ",contact.emails if len(contact.emails) >0 else "-")
     
    
     def _filter(self, item):
@@ -56,6 +57,10 @@ class AddressBook:
         if len(self._firstname) > 0 and (item is not None) \
             and item.firstname.lower() != self._firstname.lower():
             return False
+        
+        if len(self._address) >0 and (item is not None):
+            if len(item.address) <=0 or (len(item.address) >0 and difflib.SequenceMatcher(a=self._address, b=item.address).ratio() < 0.1):
+                return False
 
         if len(self._phones) > 0 and (item is not None) \
             and not any(i in self._phones for i in item.phones):
@@ -67,9 +72,10 @@ class AddressBook:
 
         return True
 
-    def list(self, lastname="", firstname="", phones=[], emails=[]): 
+    def list(self, lastname="", firstname="", address="", phones=[], emails=[]): 
         self._lastname = lastname
         self._firstname = firstname
+        self._address = address
         self._phones = phones
         self._emails = emails
         _addressbook_filtered = filter(self._filter, self._addressbook)
@@ -176,8 +182,10 @@ def main():
         _email_list = []
         if not check_and_get_emaillist(args.command, args.email, _email_list):
             return 
+        
+        _address = get_str_from_args_field(args.address)
 
-        addressbook.list(lastname=_lastname, firstname=_firstname, 
+        addressbook.list(lastname=_lastname, firstname=_firstname, address= _address,
             phones=_phone_list, emails=_email_list)      
 
 if __name__ == "__main__":
