@@ -92,7 +92,7 @@ class AddressBook:
             return False
 
         if len(self._emails) > 0 and (item is not None) \
-            and not any(i in self._emails for i in item.emails):
+            and not any(i.lower() in self._emails for i in item.emails):
             return False
 
         return True
@@ -149,12 +149,12 @@ def check_and_get_emaillist(command, emailargs, emaillist):
     if len(_email) > 0:
         _email_list = _email.split(';')
         for i in range(len(_email_list)):
-            if not re.search("^\\s*\w+@\w+.\w+\\s*$", _email_list[i]):
+            if not re.search("^\\s*([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+\\s*$", _email_list[i]):
                 print("{appname}:'{command}': Bad phone email format '{bademail}'. See '{appname} help'"
                     .format(appname=sys.argv[0].split("/")[-1], command=command, 
                         bademail=_email_list[i]))
                 return False
-            _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
+            _email_list[i] = _email_list[i].replace(" ","").lower() #remove trailing spaces (if any)
     emaillist[:] = _email_list
     return True  
 
@@ -162,7 +162,7 @@ def main():
     addressbook = AddressBook()
 
     parser = argparse.ArgumentParser(description="A Simple Python CLI program to manage Adress book")
-    parser.add_argument("command", help="Command to execute", type=str.lower, choices = ["add", "list"])
+    parser.add_argument("command", help="Command to execute", type=str.lower, choices = ["add", "list", "remove"])
     parser.add_argument("-ln", "--lastname", type= str, help="Last name")
     parser.add_argument("-fn", "--firstname", type= str, help="First name")
     parser.add_argument("-a", "--address", type= str, help="Address")
