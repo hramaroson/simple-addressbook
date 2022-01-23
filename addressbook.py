@@ -6,7 +6,7 @@ import pickle
 import re
 
 class Contact:
-    def __init__(self,lastname="John", firstname="Doe", address="", phones=[], emails=[]):
+    def __init__(self,lastname="John", firstname="Doe", address= None, phones=[], emails=[]):
         self.lastname = lastname
         self.firstname = firstname
         self.address = address
@@ -42,28 +42,50 @@ class AddressBook:
                 file.close()
 
             print("Contact has been added")
-            print("-Last Name:\t ",contact.lastname if len(contact.lastname) >0 else "-")
-            print("-First Name:\t ",contact.firstname if len(contact.firstname) >0 else "-")
-            print("-Address:\t ",contact.address if len(contact.address) >0 else "-")
-            print("-Phone number(s):\t ",contact.phones if len(contact.phones) >0 else "-")
-            print("-Email(s):\t ",contact.emails if len(contact.emails) >0 else "-")
-    
+            print("-Last Name:\t ",contact.lastname \
+                if contact.lastname and len(contact.lastname) >0 else "-")
+            print("-First Name:\t ",contact.firstname \
+                if contact.firstname and len(contact.firstname) >0 else "-")
+            print("-Address:\t ",contact.address \
+                if contact.address and len(contact.address) >0 else "-")
+            print("-Phone number(s):\t ",contact.phones \
+                if contact.phones and len(contact.phones) >0 else "-")
+            print("-Email(s):\t ",contact.emails \
+                if contact.emails and len(contact.emails) >0 else "-")
    
     def _filter(self, item):
-        if len(self._lastname) > 0 and (item is not None):
-            if len(item.lastname) <=0 or (len(item.lastname) >0 \
-                and item.lastname.lower() != self._lastname.lower()):
+        if item and self._lastname:
+            if len(self._lastname.replace(" ",""))>0 \
+                and (item.lastname is None or (item.lastname and len(item.lastname)<1)):
                 return False
-
-        if len(self._firstname) > 0 and (item is not None):
-            if len(item.firstname) <=0 or (len(item.firstname) >0 \
-                and item.firstname.lower() != self._firstname.lower()):
+            if len(self._lastname.replace(" ",""))<1 \
+                and (item.lastname and len(item.lastname)>0):
+                return False
+            if item.lastname \
+                and difflib.SequenceMatcher(a=self._lastname, b=item.lastname).ratio()<0.5:
                 return False
         
-        if len(self._address) >0 and (item is not None):
-            if len(item.address) <=0 or (len(item.address) >0 \
-                and difflib.SequenceMatcher(a=self._address, b=item.address).ratio() < 0.1):
+        if item and self._firstname:
+            if len(self._firstname.replace(" ",""))>0 \
+                and (item.firstname is None or (item.firstname and len(item.lastname)<1)):
                 return False
+            if len(self._firstname.replace(" ",""))<1 \
+                and (item.firstname and len (item.firstname)>0):
+                return False 
+            elif item.firstname \
+                and difflib.SequenceMatcher(a=self._firstname, b=item.firstname).ratio()<0.5:
+                return False
+        
+        if item and self._address:
+            if len(self._address.replace(" ",""))>0 \
+                and (item.address is None or (item.address and len(item.address)<1)):
+                return False
+            if len(self._address.replace(" ",""))<1 \
+                and (item.address and len(item.address)>0):
+                return False
+            elif item.address \
+                and difflib.SequenceMatcher(a=self._address, b=item.address).ratio()<0.5:
+                return False 
 
         if len(self._phones) > 0 and (item is not None) \
             and not any(i in self._phones for i in item.phones):
@@ -75,7 +97,7 @@ class AddressBook:
 
         return True
 
-    def list(self, lastname="", firstname="", address="", phones=[], emails=[]): 
+    def list(self, lastname="", firstname="", address= None, phones=[], emails=[]): 
         self._lastname = lastname
         self._firstname = firstname
         self._address = address
@@ -85,13 +107,15 @@ class AddressBook:
         
         print("First Name\t|Last Name\t|Address\t|Phone Numbers(s)\t|Emails(s)")
         for _contact in _addressbook_filtered:
-            print(_contact.firstname if len(_contact.firstname) > 0 else "-",end="\t\t")
-            print(_contact.lastname if len(_contact.lastname) > 0 else "-", end="\t\t")
-            print(_contact.address if len(_contact.address) > 0 else "-", end="\t\t")
+            print(_contact.firstname if (_contact.firstname and len(_contact.firstname) > 0) \
+                else "-",end="\t\t") 
+            print(_contact.lastname if (_contact.lastname and len(_contact.lastname) > 0) \
+                else "-", end="\t\t")
+            print(_contact.address if _contact.address and len(_contact.address) > 0 \
+                else "-", end="\t\t")
             print(";".join(_contact.phones) if len(_contact.phones) > 0 else "-", end="\t\t")
             print(";".join(_contact.emails) if len(_contact.emails) > 0 else "-", end="\t\t")
             print("\n",end="")
-
 
 def get_str_from_args_field(args_field):
     _str = ""
@@ -132,7 +156,7 @@ def check_and_get_emaillist(command, emailargs, emaillist):
                 return False
             _email_list[i] = _email_list[i].replace(" ","") #remove trailing spaces (if any)
     emaillist[:] = _email_list
-    return True 
+    return True  
 
 def main():
     addressbook = AddressBook()
@@ -149,10 +173,11 @@ def main():
     # Add a contact to the address
     if args.command == "add": 
         #Check if contact lastname is given
-        _lastname = get_str_from_args_field(args.lastname)
-        _firstname = get_str_from_args_field(args.firstname)
+        _lastname = args.lastname
+        _firstname = args.firstname
         
-        if len(_lastname)<1 and len(_firstname) <1:
+        if (_lastname is None or (_lastname and len(_lastname)<1)) \
+            and (_firstname is None or (_firstname and len(_firstname)<1)):
             print("{appname}:'{command}': At least one of Contact last name or first name should be given. See '{appname} help'"
                 .format(appname=sys.argv[0].split("/")[-1], command=args.command))
             return
@@ -168,16 +193,13 @@ def main():
             return 
 
         _contact = Contact(lastname=_lastname, firstname= _firstname)
-        _contact.address = get_str_from_args_field(args.address)
+        _contact.address = args.address
         _contact.phones = _phone_list
         _contact.emails = _email_list 
         addressbook.addContact(_contact)  
     
     # List contacts
     elif args.command == "list":
-        _lastname = get_str_from_args_field(args.lastname)
-        _firstname = get_str_from_args_field(args.firstname)
-
         _phone_list = []
         if not check_and_get_phonelist(args.command, args.phone, _phone_list): 
             return
@@ -186,9 +208,7 @@ def main():
         if not check_and_get_emaillist(args.command, args.email, _email_list):
             return 
         
-        _address = get_str_from_args_field(args.address)
-
-        addressbook.list(lastname=_lastname, firstname=_firstname, address= _address,
+        addressbook.list(lastname= args.lastname, firstname=args.firstname, address= args.address,
             phones=_phone_list, emails=_email_list)      
 
 if __name__ == "__main__":
