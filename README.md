@@ -2,12 +2,13 @@
 A Simple Python CLI program to manage Adress book
 
 ```console
-usage: addressbook.py [-h] [-ln LASTNAME] [-fn FIRSTNAME] [-a ADDRESS] [-p PHONE] [-e EMAIL] {add,list}
+usage: addressbook.py [-h] [-ln LASTNAME] [-fn FIRSTNAME] [-a ADDRESS] [-p PHONE] [-e EMAIL]
+                      {add,list,remove}
 
 A Simple Python CLI program to manage Adress book
 
 positional arguments:
-  {add,list}            Command to execute
+  {add,list,remove}     Command to execute
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -20,5 +21,5 @@ optional arguments:
   -p PHONE, --phone PHONE
                         Phone number(s)
   -e EMAIL, --email EMAIL
-                        Email address(s)   
+                        Email address(s)  
 ```
