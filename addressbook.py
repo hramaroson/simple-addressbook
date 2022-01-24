@@ -41,17 +41,26 @@ class AddressBook:
                 pickle.dump(self._addressbook, file)
                 file.close()
 
-            print("Contact has been added")
-            print("-Last Name:\t ",contact.lastname \
-                if contact.lastname and len(contact.lastname) >0 else "-")
-            print("-First Name:\t ",contact.firstname \
-                if contact.firstname and len(contact.firstname) >0 else "-")
-            print("-Address:\t ",contact.address \
-                if contact.address and len(contact.address) >0 else "-")
-            print("-Phone number(s):\t ",contact.phones \
-                if contact.phones and len(contact.phones) >0 else "-")
-            print("-Email(s):\t ",contact.emails \
-                if contact.emails and len(contact.emails) >0 else "-")
+            print("Contact has been added\n")
+            self._print_aligned("-Last Name: ")
+            self._print_aligned(contact.lastname \
+                if contact.lastname and len(contact.lastname) >0 else "-", end="\n")
+            
+            self._print_aligned("-First Name: ")
+            self._print_aligned(contact.firstname \
+                if contact.firstname and len(contact.firstname) >0 else "-", end="\n")
+            
+            self._print_aligned("-Address: ")
+            self._print_aligned(contact.address \
+                if contact.address and len(contact.address) >0 else "-", end="\n")
+            
+            self._print_aligned("-Phone number(s): ")
+            self._print_aligned(str(contact.phones) \
+                if contact.phones and len(contact.phones) >0 else "-", end="\n")
+
+            self._print_aligned("-Email(s): ")
+            self._print_aligned(str(contact.emails) \
+                if contact.emails and len(contact.emails) >0 else "-", end="\n")
    
     def _filter(self, item):
         if item and self._lastname:
@@ -97,24 +106,45 @@ class AddressBook:
 
         return True
 
+    def _print_aligned(self, str, end=""):
+        print(f"{str :20s} ",end=end)
+
     def list(self, lastname="", firstname="", address= None, phones=[], emails=[]): 
         self._lastname = lastname
         self._firstname = firstname
         self._address = address
         self._phones = phones
         self._emails = emails
-        _addressbook_filtered = filter(self._filter, self._addressbook)
+        _addressbook_filtered = list(filter(self._filter, self._addressbook))
+        _count = len(_addressbook_filtered)
+        print(f"{_count} on {len(self._addressbook)} contact(s) listed")
+        if _count <1:
+            return
+
+        print("\n", end="")
+        self._print_aligned("| First Name")
+        self._print_aligned("| Last Name")
+        self._print_aligned("| Address")
+        self._print_aligned("| Phone Number(s)")
+        self._print_aligned("| Email(s)")
+        print("\n", end="")
+
+        for i in range (0, 5):
+            self._print_aligned("____________")
         
-        print("First Name\t|Last Name\t|Address\t|Phone Numbers(s)\t|Emails(s)")
+        print("\n", end="")
+       
         for _contact in _addressbook_filtered:
-            print(_contact.firstname if (_contact.firstname and len(_contact.firstname) > 0) \
-                else "-",end="\t\t") 
-            print(_contact.lastname if (_contact.lastname and len(_contact.lastname) > 0) \
-                else "-", end="\t\t")
-            print(_contact.address if _contact.address and len(_contact.address) > 0 \
-                else "-", end="\t\t")
-            print(";".join(_contact.phones) if len(_contact.phones) > 0 else "-", end="\t\t")
-            print(";".join(_contact.emails) if len(_contact.emails) > 0 else "-", end="\t\t")
+            self._print_aligned(_contact.firstname \
+                if (_contact.firstname and len(_contact.firstname) > 0) else "-") 
+            self._print_aligned(_contact.lastname \
+                if (_contact.lastname and len(_contact.lastname) > 0) else "-")
+            self._print_aligned(_contact.address \
+                if _contact.address and len(_contact.address) > 0 else "-")
+            self._print_aligned(";".join(_contact.phones) \
+                if len(_contact.phones) > 0 else "-")
+            self._print_aligned(";".join(_contact.emails) \
+                if len(_contact.emails) > 0 else "-")
             print("\n",end="")
 
 def get_str_from_args_field(args_field):
@@ -154,7 +184,7 @@ def check_and_get_emaillist(command, emailargs, emaillist):
                     .format(appname=sys.argv[0].split("/")[-1], command=command, 
                         bademail=_email_list[i]))
                 return False
-            _email_list[i] = _email_list[i].replace(" ","").lower() #remove trailing spaces (if any)
+            _email_list[i] = _email_list[i].strip().lower() #remove trailing spaces (if any)
     emaillist[:] = _email_list
     return True  
 
