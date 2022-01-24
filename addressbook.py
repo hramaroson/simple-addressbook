@@ -63,45 +63,45 @@ class AddressBook:
                 if contact.emails and len(contact.emails) >0 else "-", end="\n")
    
     def _filter(self, item):
-        if item and self._lastname:
-            if len(self._lastname.replace(" ",""))>0 \
+        if item and self._contact.lastname:
+            if len(self._contact.lastname.replace(" ",""))>0 \
                 and (item.lastname is None or (item.lastname and len(item.lastname)<1)):
                 return False
-            if len(self._lastname.replace(" ",""))<1 \
+            if len(self._contact.lastname.replace(" ",""))<1 \
                 and (item.lastname and len(item.lastname)>0):
                 return False
             if item.lastname \
-                and difflib.SequenceMatcher(a=self._lastname, b=item.lastname).ratio()<0.5:
+                and difflib.SequenceMatcher(a=self._contact.lastname, b=item.lastname).ratio()<0.5:
                 return False
         
-        if item and self._firstname:
-            if len(self._firstname.replace(" ",""))>0 \
+        if item and self._contact.firstname:
+            if len(self._contact.firstname.replace(" ",""))>0 \
                 and (item.firstname is None or (item.firstname and len(item.lastname)<1)):
                 return False
-            if len(self._firstname.replace(" ",""))<1 \
+            if len(self._contact.firstname.replace(" ",""))<1 \
                 and (item.firstname and len (item.firstname)>0):
                 return False 
             elif item.firstname \
-                and difflib.SequenceMatcher(a=self._firstname, b=item.firstname).ratio()<0.5:
+                and difflib.SequenceMatcher(a=self._contact.firstname, b=item.firstname).ratio()<0.5:
                 return False
         
-        if item and self._address:
-            if len(self._address.replace(" ",""))>0 \
+        if item and self._contact.address:
+            if len(self._contact.address.replace(" ",""))>0 \
                 and (item.address is None or (item.address and len(item.address)<1)):
                 return False
-            if len(self._address.replace(" ",""))<1 \
+            if len(self._contact.address.replace(" ",""))<1 \
                 and (item.address and len(item.address)>0):
                 return False
             elif item.address \
-                and difflib.SequenceMatcher(a=self._address, b=item.address).ratio()<0.5:
+                and difflib.SequenceMatcher(a=self._contact.address, b=item.address).ratio()<0.5:
                 return False 
 
-        if len(self._phones) > 0 and (item is not None) \
-            and not any(i in self._phones for i in item.phones):
+        if len(self._contact.phones) > 0 and (item is not None) \
+            and not any(i in self._contact.phones for i in item.phones):
             return False
 
-        if len(self._emails) > 0 and (item is not None) \
-            and not any(i.lower() in self._emails for i in item.emails):
+        if len(self._contact.emails) > 0 and (item is not None) \
+            and not any(i.lower() in self._contact.emails for i in item.emails):
             return False
 
         return True
@@ -109,12 +109,9 @@ class AddressBook:
     def _print_aligned(self, str, end=""):
         print(f"{str :20s} ",end=end)
 
-    def list(self, lastname="", firstname="", address= None, phones=[], emails=[]): 
-        self._lastname = lastname
-        self._firstname = firstname
-        self._address = address
-        self._phones = phones
-        self._emails = emails
+    def list(self, contact): 
+        self._contact = contact
+
         _addressbook_filtered = list(filter(self._filter, self._addressbook))
         _count = len(_addressbook_filtered)
         print(f"{_count} on {len(self._addressbook)} contact(s) listed")
@@ -146,6 +143,9 @@ class AddressBook:
             self._print_aligned(";".join(_contact.emails) \
                 if len(_contact.emails) > 0 else "-")
             print("\n",end="")
+    
+    def remove(self, firstname="", lastname="",address= None, phones=[], emails=[]): 
+        pass
 
 def get_str_from_args_field(args_field):
     _str = ""
@@ -238,8 +238,12 @@ def main():
         if not check_and_get_emaillist(args.command, args.email, _email_list):
             return 
         
-        addressbook.list(lastname= args.lastname, firstname=args.firstname, address= args.address,
-            phones=_phone_list, emails=_email_list)      
+        addressbook.list(Contact(lastname=args.lastname, firstname=args.firstname, address= args.address,
+            phones=_phone_list, emails=_email_list))   
+
+    elif args.command == "remove":
+        addressbook.remove(Contact(lastname=args.lastname, firstname=args.firstname))
+        pass   
 
 if __name__ == "__main__":
     main()
