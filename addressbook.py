@@ -7,6 +7,7 @@ import re
 
 CYELLOW = '\033[93m'
 CGREEN  = '\33[32m'
+CRED = '\033[31m'
 CEND =  '\033[0m'
 
 class Contact:
@@ -180,7 +181,7 @@ class AddressBook:
                 pass
 
             if _validated == "n":
-                print("Aborted.")
+                print(f"{CRED}Aborted.{CEND}")
                 return
             elif _validated == "y":
                 # Remove contacts from _addressbook_filtered in _addressbook
@@ -189,7 +190,7 @@ class AddressBook:
                 print(f"{CGREEN}{_count} contact(s) removed{CEND}")
                 break
             else:
-                print(f"Invalid answer '{_validated}'")
+                print(f"{CRED}Invalid answer '{_validated}'.{CEND}")
 
 def get_str_from_args_field(args_field):
     _str = ""
