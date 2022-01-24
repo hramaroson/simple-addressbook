@@ -5,6 +5,10 @@ import argparse
 import pickle
 import re
 
+CYELLOW = '\033[93m'
+CGREEN  = '\33[32m'
+CEND =  '\033[0m'
+
 class Contact:
     def __init__(self,lastname="John", firstname="Doe", address= None, phones=[], emails=[]):
         self.lastname = lastname
@@ -31,17 +35,25 @@ class AddressBook:
         "Available commands:\n"             
         "\tadd\tAdd a contact to the adress book")
 
+    def _saveToFile(self):
+        #save _addressbook to file
+        file = None 
+        try:
+            file = open("addressbook.data","bw")
+        except:
+            pass
+
+        if file:
+            pickle.dump(self._addressbook, file)
+            file.close()
+
     def addContact(self, contact):
         if contact and isinstance(contact, Contact):
             self._addressbook.append(contact)
             
-            #save to file
-            file = open("addressbook.data","bw")
-            if file:
-                pickle.dump(self._addressbook, file)
-                file.close()
+            self._saveToFile()
 
-            print("Contact has been added\n")
+            print(f"{CGREEN}Contact has been added\n{CEND}")
             self._print_aligned("-Last Name: ")
             self._print_aligned(contact.lastname \
                 if contact.lastname and len(contact.lastname) >0 else "-", end="\n")
@@ -104,20 +116,12 @@ class AddressBook:
             and not any(i.lower() in self._contact.emails for i in item.emails):
             return False
 
-        return True
+        return True 
 
     def _print_aligned(self, str, end=""):
-        print(f"{str :20s} ",end=end)
+        print(f"{str :20s} ",end=end) 
 
-    def list(self, contact): 
-        self._contact = contact
-
-        _addressbook_filtered = list(filter(self._filter, self._addressbook))
-        _count = len(_addressbook_filtered)
-        print(f"{_count} on {len(self._addressbook)} contact(s) listed")
-        if _count <1:
-            return
-
+    def _list_d(self, contact_list): 
         print("\n", end="")
         self._print_aligned("| First Name")
         self._print_aligned("| Last Name")
@@ -131,7 +135,7 @@ class AddressBook:
         
         print("\n", end="")
        
-        for _contact in _addressbook_filtered:
+        for _contact in contact_list:
             self._print_aligned(_contact.firstname \
                 if (_contact.firstname and len(_contact.firstname) > 0) else "-") 
             self._print_aligned(_contact.lastname \
@@ -143,9 +147,49 @@ class AddressBook:
             self._print_aligned(";".join(_contact.emails) \
                 if len(_contact.emails) > 0 else "-")
             print("\n",end="")
+
+    def list(self, contact): 
+        self._contact = contact
+
+        _addressbook_filtered = list(filter(self._filter, self._addressbook))
+        _count = len(_addressbook_filtered)
+        print(f"{CYELLOW}{_count} of {len(self._addressbook)} contact(s) listed{CEND}")
+        if _count <1:
+            return
+
+        self._list_d(_addressbook_filtered)   
     
-    def remove(self, firstname="", lastname="",address= None, phones=[], emails=[]): 
-        pass
+    def remove(self, contact): 
+        self._contact = contact
+
+        _addressbook_filtered = list(filter(self._filter, self._addressbook))
+        _count = len(_addressbook_filtered)
+        print(f"{CYELLOW}{_count} of {len(self._addressbook)} contact(s) to be removed{CEND}")
+        if _count <1:
+            print("Nothing to do!")
+            return
+
+        self._list_d(_addressbook_filtered) 
+        print("\n",end="")
+
+        while True:
+            _validated="n"
+            try:
+                _validated = input("Do you want to remove this/these contact(s)? [y/n]: ").lower()
+            except:
+                pass
+
+            if _validated == "n":
+                print("Aborted.")
+                return
+            elif _validated == "y":
+                # Remove contacts from _addressbook_filtered in _addressbook
+                self._addressbook = [c for c in self._addressbook if c not in _addressbook_filtered]
+                self._saveToFile()
+                print(f"{CGREEN}{_count} contact(s) removed{CEND}")
+                break
+            else:
+                print(f"Invalid answer '{_validated}'")
 
 def get_str_from_args_field(args_field):
     _str = ""
@@ -222,11 +266,8 @@ def main():
         if not check_and_get_emaillist(args.command, args.email, _email_list):
             return 
 
-        _contact = Contact(lastname=_lastname, firstname= _firstname)
-        _contact.address = args.address
-        _contact.phones = _phone_list
-        _contact.emails = _email_list 
-        addressbook.addContact(_contact)  
+        addressbook.addContact(Contact(lastname=_lastname, firstname= _firstname, \
+            address=args.address, phones=_phone_list, emails=_email_list))  
     
     # List contacts
     elif args.command == "list":
@@ -242,8 +283,14 @@ def main():
             phones=_phone_list, emails=_email_list))   
 
     elif args.command == "remove":
-        addressbook.remove(Contact(lastname=args.lastname, firstname=args.firstname))
-        pass   
+        _phone_list = []
+        if not check_and_get_phonelist(args.command, args.phone, _phone_list): 
+            return
+        
+        _email_list = []
+        if not check_and_get_emaillist(args.command, args.email, _email_list):
+            return 
+        addressbook.remove(Contact(lastname=args.lastname, firstname=args.firstname))  
 
 if __name__ == "__main__":
     main()
